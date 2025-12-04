@@ -1,0 +1,20 @@
+# IDE
+.idea/
+*.iml
+
+# CI
+.ci/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!plugins/*/README.md
+
+# Misc
+.lua-format
+*.tar.gz
+target/
+
