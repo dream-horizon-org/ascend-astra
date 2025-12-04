@@ -1,0 +1,77 @@
+_format_version: "1.1"
+services:
+  - connect_timeout: 10000
+    host: localhost
+    name: testlab
+    port: 8100
+    protocol: http
+    read_timeout: 10000
+    retries: 1
+    write_timeout: 10000
+    tags:
+      - testlab
+    routes:
+      - name: allocations
+        methods:
+          - GET
+        paths:
+          - /v1/allocations
+        path_handling: v1
+        preserve_host: false
+        protocols:
+          - http
+          - https
+        regex_priority: 0
+        strip_path: false
+        tags:
+          - testlab
+        https_redirect_status_code: 426
+      - name: re-allocate
+        methods:
+          - PUT
+        paths:
+          - /v1/allocations
+        path_handling: v1
+        preserve_host: false
+        protocols:
+          - http
+          - https
+        regex_priority: 0
+        strip_path: false
+        tags:
+          - testlab
+        https_redirect_status_code: 426
+
+plugins:
+  - name: swap-header
+    service: testlab
+    config:
+      source_header: x-api-key
+      target_header: x-project-key
+    enabled: true
+    protocols:
+      - http
+      - https
+    tags:
+      - testlab
+  - name: circuit-breaker
+    config:
+      api_call_timeout_ms: 1000
+      error_msg_override: null
+      error_status_code: 599
+      excluded_apis: '{}'
+      failure_percent_threshold: 51
+      half_open_max_calls_in_window: 8
+      half_open_min_calls_in_window: 3
+      min_calls_in_window: 10
+      response_header_override: null
+      set_logger_metrics_in_ctx: true
+      wait_duration_in_half_open_state: 120
+      wait_duration_in_open_state: 15
+      window_time: 10
+    enabled: true
+    protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
