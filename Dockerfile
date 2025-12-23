@@ -15,6 +15,15 @@ RUN apt-get update && apt-get install -y build-essential wget curl && \
    # Clean up
    apt-get remove -y build-essential wget && apt-get autoremove -y
 
+# Copy rockspec and install dependencies
+COPY ascend-astra/kong.rockspec /tmp/kong.rockspec
+WORKDIR /tmp
+
+# Install open source dependencies from rockspec
+RUN luarocks install kong-circuit-breaker 2.1.1 --server=https://rocks.konghq.com && \
+    luarocks install host-interpolate-by-header 1.3.0 --server=https://rocks.konghq.com && \
+    luarocks install kong-advanced-router 0.2.1 --server=https://rocks.konghq.com
+
 # Copy all custom plugins
 COPY plugins/maintenance /usr/local/share/lua/5.1/kong/plugins/maintenance
 COPY plugins/conditional-req-termination /usr/local/share/lua/5.1/kong/plugins/conditional-req-termination
