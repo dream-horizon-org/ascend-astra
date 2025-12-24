@@ -546,6 +546,17 @@ services:
         https_redirect_status_code: 426
 
 plugins:
+  # Global Tenant Manager - handles /v1/tenants/* API endpoints
+  - name: tenant-manager
+    config:
+      api_path_prefix: /v1
+      default_page_size: 20
+      max_page_size: 100
+    enabled: true
+    protocols:
+      - http
+      - https
+
   # Global CORS - allows frontend to access Kong APIs
   - name: cors
     config:
@@ -631,7 +642,5 @@ plugins:
       window_time: 10
     enabled: true
     protocols:
-      - grpc
-      - grpcs
       - http
       - https
