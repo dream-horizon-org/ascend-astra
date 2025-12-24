@@ -49,7 +49,7 @@ services:
       KONG_PG_USER: kong
       KONG_PG_PASSWORD: kongpass
       KONG_PG_DATABASE: kong
-      KONG_PLUGINS: bundled,maintenance,conditional-req-termination,strip-headers,rate-limiting-v2,api-key-auth,tenant-manager,circuit-breaker,host-interpolate-by-header,advanced-router
+      KONG_PLUGINS: bundled,cors,maintenance,conditional-req-termination,strip-headers,rate-limiting-v2,api-key-auth,tenant-manager,circuit-breaker,host-interpolate-by-header,advanced-router
     depends_on:
       postgres:
         condition: service_healthy
@@ -94,7 +94,7 @@ services:
       KONG_ADMIN_GUI_URL: http://localhost:8002
       
       # Custom plugins
-      KONG_PLUGINS: bundled,maintenance,conditional-req-termination,strip-headers,rate-limiting-v2,api-key-auth,tenant-manager,circuit-breaker,host-interpolate-by-header,advanced-router
+      KONG_PLUGINS: bundled,cors,maintenance,conditional-req-termination,strip-headers,rate-limiting-v2,api-key-auth,tenant-manager,circuit-breaker,host-interpolate-by-header,advanced-router
 
       # Redis for rate limiting
       KONG_REDIS_HOST: redis
