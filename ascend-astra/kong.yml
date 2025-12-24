@@ -43,6 +43,37 @@ services:
         https_redirect_status_code: 426
 
 plugins:
+  # Global CORS - allows frontend to access Kong APIs
+  - name: cors
+    config:
+      origins:
+        - http://localhost:5173
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+        - HEAD
+      headers:
+        - Accept
+        - Accept-Language
+        - Content-Language
+        - Content-Type
+        - Authorization
+        - X-Requested-With
+        - X-Request-ID
+        - X-Api-Key
+      exposed_headers:
+        - X-Request-ID
+      credentials: true
+      max_age: 3600
+    enabled: true
+    protocols:
+      - http
+      - https
+
   - name: swap-header
     service: testlab
     config:
