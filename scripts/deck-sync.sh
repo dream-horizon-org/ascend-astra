@@ -5,7 +5,7 @@ set -euo pipefail
 # Usage: ./deck-sync.sh [KONG_ADMIN_URL] [CONFIG_FILE]
 
 KONG_ADMIN_URL=${1:-"http://localhost:8001"}
-CONFIG_FILE=${2:-"./kong-config/kong.yaml"}
+CONFIG_FILE=${2:-"ascend-astra/kong.yml"}
 
 echo "Syncing Kong config to: $KONG_ADMIN_URL"
 echo "Using config file: $CONFIG_FILE"
