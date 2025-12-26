@@ -58,6 +58,55 @@ return {
                             description = "Allow requests without API key to pass through (default: false)",
                         },
                     },
+                    -- Redis caching options
+                    {
+                        cache_enabled = {
+                            type = "boolean",
+                            required = false,
+                            default = true,
+                            description = "Enable Redis caching for API key validation (default: true)",
+                        },
+                    },
+                    {
+                        cache_ttl = {
+                            type = "integer",
+                            required = false,
+                            default = 300,
+                            description = "Cache TTL in seconds (default: 300 = 5 minutes)",
+                        },
+                    },
+                    {
+                        redis_host = {
+                            type = "string",
+                            required = false,
+                            default = "redis",
+                            description = "Redis host (default: redis)",
+                        },
+                    },
+                    {
+                        redis_port = {
+                            type = "integer",
+                            required = false,
+                            default = 6379,
+                            description = "Redis port (default: 6379)",
+                        },
+                    },
+                    {
+                        redis_timeout = {
+                            type = "integer",
+                            required = false,
+                            default = 2000,
+                            description = "Redis connection timeout in ms (default: 2000)",
+                        },
+                    },
+                    {
+                        redis_prefix = {
+                            type = "string",
+                            required = false,
+                            default = "api_key_auth:",
+                            description = "Redis key prefix (default: api_key_auth:)",
+                        },
+                    },
                 },
             },
         },

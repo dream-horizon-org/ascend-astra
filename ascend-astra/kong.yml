@@ -1,772 +1,769 @@
-_format_version: "1.1"
-services:
-  # Tenant Manager Service (handled by tenant-manager plugin, no actual upstream needed)
-  - name: tenant-manager
-    host: localhost
-    port: 8001
-    protocol: http
-    connect_timeout: 10000
-    read_timeout: 10000
-    write_timeout: 10000
-    tags:
-      - tenant-manager
-    routes:
-      # Tenants collection
-      - name: tenant-manager-tenants
-        methods:
-          - GET
-          - POST
-        paths:
-          - /v1/tenants
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # Single tenant
-      - name: tenant-manager-tenant
-        methods:
-          - GET
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 50
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # Projects collection
-      - name: tenant-manager-projects
-        methods:
-          - GET
-          - POST
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # Single project
-      - name: tenant-manager-project
-        methods:
-          - GET
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 150
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # API Keys collection
-      - name: tenant-manager-api-keys
-        methods:
-          - POST
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 200
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # Single API key
-      - name: tenant-manager-api-key
-        methods:
-          - GET
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys/(?<key_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 250
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-      # Rotate API key
-      - name: tenant-manager-api-key-rotate
-        methods:
-          - POST
-        paths:
-          - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys/(?<key_id>[a-zA-Z0-9-]+)/rotate$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 300
-        strip_path: false
-        tags:
-          - tenant-manager
-        https_redirect_status_code: 426
-
-  - connect_timeout: 10000
-    host: localhost
-    name: testlab
-    port: 8100
-    protocol: http
-    read_timeout: 10000
-    retries: 1
-    write_timeout: 10000
-    tags:
-      - testlab
-    routes:
-      # Allocations
-      - name: get-allocations
-        methods:
-          - GET
-        paths:
-          - /v1/allocations
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - testlab
-          - allocations
-        https_redirect_status_code: 426
-      - name: create-allocation
-        methods:
-          - POST
-        paths:
-          - /v1/allocations
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - testlab
-          - allocations
-        https_redirect_status_code: 426
-      - name: re-allocate
-        methods:
-          - PUT
-        paths:
-          - /v1/allocations
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - testlab
-          - allocations
-        https_redirect_status_code: 426
-      # Experiments
-      - name: list-experiments
-        methods:
-          - GET
-        paths:
-          - /v1/experiments
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: create-experiment
-        methods:
-          - POST
-        paths:
-          - /v1/experiments
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: experiment-key-availability
-        methods:
-          - GET
-        paths:
-          - /v1/experiments/key-availability
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: experiment-tags
-        methods:
-          - GET
-        paths:
-          - /v1/experiments/tags
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: get-experiment
-        methods:
-          - GET
-        paths:
-          - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 50
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: delete-experiment
-        methods:
-          - DELETE
-        paths:
-          - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 50
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: update-experiment
-        methods:
-          - PATCH
-        paths:
-          - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 50
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-      - name: experiment-history
-        methods:
-          - GET
-        paths:
-          - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)/history$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 150
-        strip_path: false
-        tags:
-          - testlab
-          - experiments
-        https_redirect_status_code: 426
-
-  # Flockr Admin API Service (port 8250)
-  - connect_timeout: 10000
-    host: localhost
-    name: flockr-admin
-    port: 8250
-    protocol: http
-    read_timeout: 60000
-    retries: 1
-    write_timeout: 60000
-    tags:
-      - flockr-admin
-    routes:
-      # Audiences
-      - name: flockr-admin-list-audiences
-        methods:
-          - GET
-        paths:
-          - /v1/audiences
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-create-audience
-        methods:
-          - POST
-        paths:
-          - /v1/audiences
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-get-audience-details
-        methods:
-          - GET
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-create-rules
-        methods:
-          - POST
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)/rules$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-get-rule-details
-        methods:
-          - GET
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)/rules/(?<ruleId>\d+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 200
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-get-audience-owners
-        methods:
-          - GET
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)/owners$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      - name: flockr-admin-update-audience-owner
-        methods:
-          - POST
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)/owners$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audiences
-        https_redirect_status_code: 426
-      # Audience Imports
-      - name: flockr-admin-create-import
-        methods:
-          - POST
-        paths:
-          - ~/v1/audiences/(?<audienceId>\d+)/imports$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - audience-imports
-        https_redirect_status_code: 426
-      # Data Connectors - Connector Types
-      - name: flockr-admin-list-connector-types
-        methods:
-          - GET
-        paths:
-          - /v1/connectors/types
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      - name: flockr-admin-get-connector-type
-        methods:
-          - GET
-        paths:
-          - ~/v1/connectors/types/(?<typeId>\d+)$
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      - name: flockr-admin-onboard-connector-type
-        methods:
-          - POST
-        paths:
-          - /v1/connectors/types/onboard
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      # Data Connectors - Data Sinks
-      - name: flockr-admin-list-data-sinks
-        methods:
-          - GET
-        paths:
-          - /v1/datasinks
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      - name: flockr-admin-onboard-data-sink
-        methods:
-          - POST
-        paths:
-          - /v1/datasinks/onboard
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      # Data Connectors - Data Sources
-      - name: flockr-admin-list-data-sources
-        methods:
-          - GET
-        paths:
-          - /v1/datasources
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-      - name: flockr-admin-onboard-data-source
-        methods:
-          - POST
-        paths:
-          - /v1/datasources/onboard
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-admin
-          - data-connectors
-        https_redirect_status_code: 426
-
-  # Flockr Users API Service (port 8260)
-  - connect_timeout: 10000
-    host: localhost
-    name: flockr-users
-    port: 8260
-    protocol: http
-    read_timeout: 60000
-    retries: 1
-    write_timeout: 60000
-    tags:
-      - flockr-users
-    routes:
-      # Bulk Cohort Assignment
-      - name: flockr-users-bulk-assign
-        methods:
-          - POST
-        paths:
-          - /flockr/users/assignments/bulk
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-users
-          - bulk-cohort-assignment
-        https_redirect_status_code: 426
-      # User Cohorts
-      - name: flockr-users-get-cohorts
-        methods:
-          - GET
-        paths:
-          - /flockr/users/get-cohorts
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-users
-          - user-cohorts
-        https_redirect_status_code: 426
-      # Health Check
-      - name: flockr-users-healthcheck
-        methods:
-          - GET
-        paths:
-          - /healthcheck
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 0
-        strip_path: false
-        tags:
-          - flockr-users
-          - health-check
-        https_redirect_status_code: 426
-      # User Cohort Mapping
-      - name: flockr-users-map-cohorts
-        methods:
-          - POST
-        paths:
-          - /flockr/users/map-cohorts
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 100
-        strip_path: false
-        tags:
-          - flockr-users
-          - user-cohort-mapping
-        https_redirect_status_code: 426
-      - name: flockr-users-map-cohorts-batch
-        methods:
-          - POST
-        paths:
-          - /flockr/users/map-cohorts/batch
-        path_handling: v1
-        preserve_host: false
-        protocols:
-          - http
-          - https
-        regex_priority: 200
-        strip_path: false
-        tags:
-          - flockr-users
-          - user-cohort-mapping
-        https_redirect_status_code: 426
-
+_format_version: "3.0"
 plugins:
-  # Global Tenant Manager - handles /v1/tenants/* API endpoints
-  - name: tenant-manager
-    config:
-      api_path_prefix: /v1
-      default_page_size: 20
-      max_page_size: 100
-    enabled: true
+- config:
+    api_path_prefix: /v1
+    default_page_size: 20
+    max_page_size: 100
+  enabled: true
+  name: tenant-manager
+  protocols:
+  - http
+  - https
+- config:
+    credentials: true
+    exposed_headers:
+    - X-Request-ID
+    headers:
+    - Accept
+    - Accept-Language
+    - Content-Language
+    - Content-Type
+    - Authorization
+    - X-Requested-With
+    - X-Request-ID
+    - X-Api-Key
+    max_age: 3600
+    methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
+    - HEAD
+    origins:
+    - http://localhost:5173
+  enabled: true
+  name: cors
+  protocols:
+  - http
+  - https
+- config:
+    add_project_id_header: false
+    add_tenant_header: false
+    anonymous_on_missing: false
+    cache_enabled: true
+    cache_ttl: 300
+    hide_api_key: true
+    input_header: x-api-key
+    output_header: x-project-key
+    redis_host: redis
+    redis_port: 6379
+    redis_prefix: 'api_key_auth:'
+    redis_timeout: 2000
+  enabled: true
+  name: api-key-auth
+  protocols:
+  - http
+  - https
+  service: testlab
+  tags:
+  - testlab
+- config:
+    add_project_id_header: false
+    add_tenant_header: false
+    anonymous_on_missing: false
+    cache_enabled: true
+    cache_ttl: 300
+    hide_api_key: true
+    input_header: x-api-key
+    output_header: x-project-key
+    redis_host: redis
+    redis_port: 6379
+    redis_prefix: 'api_key_auth:'
+    redis_timeout: 2000
+  enabled: true
+  name: api-key-auth
+  protocols:
+  - http
+  - https
+  service: flockr-admin
+  tags:
+  - flockr-admin
+- config:
+    add_project_id_header: false
+    add_tenant_header: false
+    anonymous_on_missing: false
+    cache_enabled: true
+    cache_ttl: 300
+    hide_api_key: true
+    input_header: x-api-key
+    output_header: x-project-key
+    redis_host: redis
+    redis_port: 6379
+    redis_prefix: 'api_key_auth:'
+    redis_timeout: 2000
+  enabled: true
+  name: api-key-auth
+  protocols:
+  - http
+  - https
+  service: flockr-users
+  tags:
+  - flockr-users
+- config:
+    api_call_timeout_ms: 1000
+    error_msg_override: null
+    error_status_code: 599
+    excluded_apis: '{}'
+    failure_percent_threshold: 51
+    half_open_max_calls_in_window: 8
+    half_open_min_calls_in_window: 3
+    min_calls_in_window: 10
+    response_header_override: null
+    set_logger_metrics_in_ctx: true
+    wait_duration_in_half_open_state: 120
+    wait_duration_in_open_state: 15
+    window_time: 10
+  enabled: true
+  name: circuit-breaker
+  protocols:
+  - http
+  - https
+services:
+- connect_timeout: 10000
+  host: localhost
+  name: tenant-manager
+  port: 8001
+  protocol: http
+  read_timeout: 10000
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    name: tenant-manager-tenants
+    path_handling: v1
+    paths:
+    - /v1/tenants
+    preserve_host: false
     protocols:
-      - http
-      - https
-
-  # Global CORS - allows frontend to access Kong APIs
-  - name: cors
-    config:
-      origins:
-        - http://localhost:5173
-      methods:
-        - GET
-        - POST
-        - PUT
-        - PATCH
-        - DELETE
-        - OPTIONS
-        - HEAD
-      headers:
-        - Accept
-        - Accept-Language
-        - Content-Language
-        - Content-Type
-        - Authorization
-        - X-Requested-With
-        - X-Request-ID
-        - X-Api-Key
-      exposed_headers:
-        - X-Request-ID
-      credentials: true
-      max_age: 3600
-    enabled: true
-    protocols:
-      - http
-      - https
-
-  - name: swap-header
-    service: testlab
-    config:
-      source_header: x-api-key
-      target_header: x-project-key
-    enabled: true
-    protocols:
-      - http
-      - https
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
     tags:
-      - testlab
-
-
-  - name: swap-header
-    service: flockr-admin
-    config:
-      source_header: x-api-key
-      target_header: x-project-key
-    enabled: true
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: tenant-manager-tenant
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
     protocols:
-      - http
-      - https
+    - http
+    - https
+    regex_priority: 50
+    strip_path: false
     tags:
-      - flockr-admin
-
-  - name: swap-header
-    service: flockr-users
-    config:
-      source_header: x-api-key
-      target_header: x-project-key
-    enabled: true
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    name: tenant-manager-projects
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects$
+    preserve_host: false
     protocols:
-      - http
-      - https
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
     tags:
-      - flockr-users
-
-  - name: circuit-breaker
-    config:
-      api_call_timeout_ms: 1000
-      error_msg_override: null
-      error_status_code: 599
-      excluded_apis: '{}'
-      failure_percent_threshold: 51
-      half_open_max_calls_in_window: 8
-      half_open_min_calls_in_window: 3
-      min_calls_in_window: 10
-      response_header_override: null
-      set_logger_metrics_in_ctx: true
-      wait_duration_in_half_open_state: 120
-      wait_duration_in_open_state: 15
-      window_time: 10
-    enabled: true
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: tenant-manager-project
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
     protocols:
-      - http
-      - https
+    - http
+    - https
+    regex_priority: 150
+    strip_path: false
+    tags:
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: tenant-manager-api-keys
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 200
+    strip_path: false
+    tags:
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: tenant-manager-api-key
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys/(?<key_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 250
+    strip_path: false
+    tags:
+    - tenant-manager
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: tenant-manager-api-key-rotate
+    path_handling: v1
+    paths:
+    - ~/v1/tenants/(?<tenant_id>[a-zA-Z0-9-]+)/projects/(?<project_id>[a-zA-Z0-9-]+)/api-keys/(?<key_id>[a-zA-Z0-9-]+)/rotate$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 300
+    strip_path: false
+    tags:
+    - tenant-manager
+  tags:
+  - tenant-manager
+  write_timeout: 10000
+- connect_timeout: 10000
+  host: host.docker.internal
+  name: testlab
+  port: 8100
+  protocol: http
+  read_timeout: 10000
+  retries: 1
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: get-allocations
+    path_handling: v1
+    paths:
+    - /v1/allocations
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - testlab
+    - allocations
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: create-allocation
+    path_handling: v1
+    paths:
+    - /v1/allocations
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - testlab
+    - allocations
+  - https_redirect_status_code: 426
+    methods:
+    - PUT
+    name: re-allocate
+    path_handling: v1
+    paths:
+    - /v1/allocations
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - testlab
+    - allocations
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: list-experiments
+    path_handling: v1
+    paths:
+    - /v1/experiments
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: create-experiment
+    path_handling: v1
+    paths:
+    - /v1/experiments
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: experiment-key-availability
+    path_handling: v1
+    paths:
+    - /v1/experiments/key-availability
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: experiment-tags
+    path_handling: v1
+    paths:
+    - /v1/experiments/tags
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: get-experiment
+    path_handling: v1
+    paths:
+    - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 50
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - DELETE
+    name: delete-experiment
+    path_handling: v1
+    paths:
+    - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 50
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - PATCH
+    name: update-experiment
+    path_handling: v1
+    paths:
+    - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 50
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: experiment-history
+    path_handling: v1
+    paths:
+    - ~/v1/experiments/(?<experiment_id>[a-zA-Z0-9-]+)/history$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 150
+    strip_path: false
+    tags:
+    - testlab
+    - experiments
+  tags:
+  - testlab
+  write_timeout: 10000
+- connect_timeout: 10000
+  host: host.docker.internal
+  name: flockr-admin
+  port: 8250
+  protocol: http
+  read_timeout: 60000
+  retries: 1
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-list-audiences
+    path_handling: v1
+    paths:
+    - /v1/audiences
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-create-audience
+    path_handling: v1
+    paths:
+    - /v1/audiences
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-get-audience-details
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-create-rules
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)/rules$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-get-rule-details
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)/rules/(?<ruleId>\d+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 200
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-get-audience-owners
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)/owners$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-update-audience-owner
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)/owners$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audiences
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-create-import
+    path_handling: v1
+    paths:
+    - ~/v1/audiences/(?<audienceId>\d+)/imports$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - audience-imports
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-list-connector-types
+    path_handling: v1
+    paths:
+    - /v1/connectors/types
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-get-connector-type
+    path_handling: v1
+    paths:
+    - ~/v1/connectors/types/(?<typeId>\d+)$
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-onboard-connector-type
+    path_handling: v1
+    paths:
+    - /v1/connectors/types/onboard
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-list-data-sinks
+    path_handling: v1
+    paths:
+    - /v1/datasinks
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-onboard-data-sink
+    path_handling: v1
+    paths:
+    - /v1/datasinks/onboard
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-admin-list-data-sources
+    path_handling: v1
+    paths:
+    - /v1/datasources
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-admin-onboard-data-source
+    path_handling: v1
+    paths:
+    - /v1/datasources/onboard
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-admin
+    - data-connectors
+  tags:
+  - flockr-admin
+  write_timeout: 60000
+- connect_timeout: 10000
+  host: host.docker.internal
+  name: flockr-users
+  port: 8260
+  protocol: http
+  read_timeout: 60000
+  retries: 1
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-users-bulk-assign
+    path_handling: v1
+    paths:
+    - /flockr/users/assignments/bulk
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-users
+    - bulk-cohort-assignment
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-users-get-cohorts
+    path_handling: v1
+    paths:
+    - /flockr/users/get-cohorts
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-users
+    - user-cohorts
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: flockr-users-healthcheck
+    path_handling: v1
+    paths:
+    - /healthcheck
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - flockr-users
+    - health-check
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-users-map-cohorts
+    path_handling: v1
+    paths:
+    - /flockr/users/map-cohorts
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 100
+    strip_path: false
+    tags:
+    - flockr-users
+    - user-cohort-mapping
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    name: flockr-users-map-cohorts-batch
+    path_handling: v1
+    paths:
+    - /flockr/users/map-cohorts/batch
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 200
+    strip_path: false
+    tags:
+    - flockr-users
+    - user-cohort-mapping
+  tags:
+  - flockr-users
+  write_timeout: 60000

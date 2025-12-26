@@ -1,8 +1,10 @@
 local kong = kong
+local cjson = require "cjson.safe"
+local redis = require "resty.redis"
 
 local ApiKeyAuth = {
     PRIORITY = 1100,  -- Run before most other plugins
-    VERSION = "1.0.0",
+    VERSION = "1.1.0",
 }
 
 -- Error codes
@@ -16,7 +18,130 @@ local ERROR_CODES = {
     PROJECT_INACTIVE = "AA-1007",
 }
 
--- Get database connector
+-- Cache status constants
+local CACHE_INVALID = "INVALID"
+
+-- ============================================
+-- REDIS FUNCTIONS
+-- ============================================
+
+local function get_redis_connection(conf)
+    local red = redis:new()
+    red:set_timeouts(conf.redis_timeout, conf.redis_timeout, conf.redis_timeout)
+    
+    local ok, err = red:connect(conf.redis_host, conf.redis_port, {
+        pool = "api-key-auth",
+        pool_size = 10,
+    })
+    
+    if not ok then
+        kong.log.warn("Failed to connect to Redis: ", err)
+        return nil, err
+    end
+    
+    return red
+end
+
+local function release_redis(red)
+    if red then
+        local ok, err = red:set_keepalive(30000, 100)
+        if not ok then
+            kong.log.warn("Failed to set Redis keepalive: ", err)
+        end
+    end
+end
+
+local function get_cache_key(conf, api_key)
+    return (conf.redis_prefix or "api_key_auth:") .. api_key
+end
+
+local function get_from_cache(conf, api_key)
+    if not conf.cache_enabled then
+        return nil
+    end
+    
+    local red, err = get_redis_connection(conf)
+    if not red then
+        return nil
+    end
+    
+    local cache_key = get_cache_key(conf, api_key)
+    local cached, get_err = red:get(cache_key)
+    release_redis(red)
+    
+    if get_err then
+        kong.log.warn("Redis GET error: ", get_err)
+        return nil
+    end
+    
+    if cached and cached ~= ngx.null then
+        -- Check if it's a cached invalid key
+        if cached == CACHE_INVALID then
+            return { invalid = true }
+        end
+        
+        local data, decode_err = cjson.decode(cached)
+        if decode_err then
+            kong.log.warn("Failed to decode cached data: ", decode_err)
+            return nil
+        end
+        
+        kong.log.debug("Cache HIT for API key")
+        return data
+    end
+    
+    kong.log.debug("Cache MISS for API key")
+    return nil
+end
+
+local function set_cache(conf, api_key, data)
+    if not conf.cache_enabled then
+        return
+    end
+    
+    local red, err = get_redis_connection(conf)
+    if not red then
+        return
+    end
+    
+    local cache_key = get_cache_key(conf, api_key)
+    local ttl = conf.cache_ttl or 300
+    
+    local value
+    if data then
+        value = cjson.encode(data)
+    else
+        -- Cache invalid keys to prevent repeated DB queries
+        value = CACHE_INVALID
+    end
+    
+    local ok, set_err = red:setex(cache_key, ttl, value)
+    release_redis(red)
+    
+    if not ok then
+        kong.log.warn("Redis SETEX error: ", set_err)
+    end
+end
+
+local function invalidate_cache(conf, api_key)
+    if not conf.cache_enabled then
+        return
+    end
+    
+    local red, err = get_redis_connection(conf)
+    if not red then
+        return
+    end
+    
+    local cache_key = get_cache_key(conf, api_key)
+    red:del(cache_key)
+    release_redis(red)
+end
+
+-- ============================================
+-- DATABASE FUNCTIONS
+-- ============================================
+
 local function get_connector()
     local connector = kong.db.connector
     if not connector then
@@ -25,14 +150,41 @@ local function get_connector()
     return connector
 end
 
--- Execute SQL query
-local function execute_query(sql, ...)
+local function escape_literal(value)
+    if value == nil then
+        return "NULL"
+    end
+    if type(value) == "number" then
+        return tostring(value)
+    end
+    if type(value) == "boolean" then
+        return value and "TRUE" or "FALSE"
+    end
+    -- String: escape single quotes by doubling them
+    local escaped = tostring(value):gsub("'", "''")
+    return "'" .. escaped .. "'"
+end
+
+local function execute_query(sql_template, params)
     local connector, err = get_connector()
     if not connector then
         return nil, err
     end
 
-    local result, query_err = connector:query(sql, ...)
+    -- Kong 3.x requires operation type as second argument: 'read' or 'write'
+    -- Parameters must be interpolated into the SQL string
+    local sql = sql_template
+    if params then
+        sql = sql:gsub("%$(%d+)", function(num)
+            local idx = tonumber(num)
+            if idx and params[idx] ~= nil then
+                return escape_literal(params[idx])
+            end
+            return "$" .. num
+        end)
+    end
+
+    local result, query_err = connector:query(sql, "read")
     if query_err then
         kong.log.err("Database query error: ", query_err)
         return nil, query_err
@@ -41,7 +193,10 @@ local function execute_query(sql, ...)
     return result
 end
 
--- Send error response
+-- ============================================
+-- API KEY VALIDATION
+-- ============================================
+
 local function send_error(status_code, code, message, cause)
     kong.response.set_header("Content-Type", "application/json")
     return kong.response.exit(status_code, {
@@ -53,13 +208,9 @@ local function send_error(status_code, code, message, cause)
     })
 end
 
--- Validate API key and get project details
-local function validate_api_key(api_key, conf)
-    -- Extract prefix for logging (first 8 characters of the UUID)
+local function validate_api_key_from_db(api_key, conf)
     local key_prefix = api_key:sub(1, 8)
     
-    -- Query to find the API key and join with project and tenant
-    -- API key is stored directly as UUID, no hashing needed
     local sql = [[
         SELECT 
             aa.id as api_key_id,
@@ -78,7 +229,7 @@ local function validate_api_key(api_key, conf)
         LIMIT 1
     ]]
     
-    local result, err = execute_query(sql, api_key)
+    local result, err = execute_query(sql, {api_key})
     if err then
         kong.log.err("Failed to validate API key: ", err)
         return nil, ERROR_CODES.DATABASE_ERROR, "Database error"
@@ -109,10 +260,6 @@ local function validate_api_key(api_key, conf)
         return nil, ERROR_CODES.TENANT_INACTIVE, "Tenant is " .. record.tenant_status:lower()
     end
     
-    -- Update last_used_at timestamp (fire and forget)
-    local update_sql = "UPDATE api_keys SET last_used_at = NOW() WHERE id = $1"
-    execute_query(update_sql, record.api_key_id)
-    
     return {
         api_key_id = record.api_key_id,
         project_id = record.project_id,
@@ -123,16 +270,42 @@ local function validate_api_key(api_key, conf)
     }
 end
 
--- Main access handler
+local function validate_api_key(api_key, conf)
+    -- Try cache first
+    local cached = get_from_cache(conf, api_key)
+    
+    if cached then
+        if cached.invalid then
+            return nil, ERROR_CODES.INVALID_API_KEY, "Invalid API key"
+        end
+        return cached
+    end
+    
+    -- Cache miss - query database
+    local key_data, error_code, error_message = validate_api_key_from_db(api_key, conf)
+    
+    if key_data then
+        -- Cache valid key data
+        set_cache(conf, api_key, key_data)
+    else
+        -- Cache invalid key to prevent repeated DB queries
+        set_cache(conf, api_key, nil)
+    end
+    
+    return key_data, error_code, error_message
+end
+
+-- ============================================
+-- MAIN ACCESS HANDLER
+-- ============================================
+
 function ApiKeyAuth:access(conf)
-    -- Get the API key from header
     local input_header = conf.input_header or "x-api-key"
     local api_key = kong.request.get_header(input_header)
     
     -- Check if API key is provided
     if not api_key or api_key == "" then
         if conf.anonymous_on_missing then
-            -- Allow anonymous access if configured
             kong.log.debug("No API key provided, allowing anonymous access")
             return
         end
@@ -140,7 +313,7 @@ function ApiKeyAuth:access(conf)
             "Unauthorized", "API key is required. Provide it via '" .. input_header .. "' header")
     end
     
-    -- Validate the API key
+    -- Validate the API key (with caching)
     local key_data, error_code, error_message = validate_api_key(api_key, conf)
     
     if not key_data then
@@ -173,4 +346,3 @@ function ApiKeyAuth:access(conf)
 end
 
 return ApiKeyAuth
-

@@ -31,7 +31,8 @@ info:
   contact:
     name: Ascend Astra Team
   license:
-    name: Proprietary
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
   - url: http://localhost:8000/v1
