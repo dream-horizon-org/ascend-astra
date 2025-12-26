@@ -121,6 +121,29 @@ plugins:
   - http
   - https
 services:
+- connect_timeout: 1000
+  host: localhost
+  name: cors-preflight
+  port: 8001
+  protocol: http
+  read_timeout: 1000
+  write_timeout: 1000
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - OPTIONS
+    name: cors-preflight-all
+    path_handling: v1
+    paths:
+    - /
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    strip_path: false
+    tags:
+    - cors
 - connect_timeout: 10000
   host: localhost
   name: tenant-manager
