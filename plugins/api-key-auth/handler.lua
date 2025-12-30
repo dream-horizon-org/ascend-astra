@@ -232,7 +232,7 @@ local function validate_api_key_from_db(api_key, conf)
     local result, err = execute_query(sql, {api_key})
     if err then
         kong.log.err("Failed to validate API key: ", err)
-        return nil, ERROR_CODES.DATABASE_ERROR, "Database error"
+        return nil, ERROR_CODES.DATABASE_ERROR, "Invalid API key"
     end
     
     if not result or #result == 0 then
