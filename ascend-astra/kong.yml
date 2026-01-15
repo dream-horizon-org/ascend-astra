@@ -104,7 +104,7 @@ plugins:
   tags:
   - flockr-users
 - config:
-    api_call_timeout_ms: 1000
+    api_call_timeout_ms: 10000
     error_msg_override: null
     error_status_code: 599
     excluded_apis: '{}'
