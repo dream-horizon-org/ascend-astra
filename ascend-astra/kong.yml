@@ -593,6 +593,18 @@ services:
     tags:
     - flockr-admin
     - audience-imports
+    plugins:
+    - name: circuit-breaker
+      config:
+        api_call_timeout_ms: 10000
+        failure_percent_threshold: 51
+        min_calls_in_window: 10
+        window_time: 10
+        wait_duration_in_open_state: 15
+        wait_duration_in_half_open_state: 120
+        half_open_min_calls_in_window: 3
+        half_open_max_calls_in_window: 8
+        set_logger_metrics_in_ctx: true
   - https_redirect_status_code: 426
     methods:
     - GET
